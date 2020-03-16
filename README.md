@@ -1,0 +1,2 @@
+# Virtuel klasse bot
+ 
