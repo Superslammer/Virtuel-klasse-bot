@@ -5,7 +5,7 @@ import discord
 from dotenv import load_dotenv
 from discord.ext import commands
 
-load_dotenv(dotenv_path="../.env")
+load_dotenv(dotenv_path="./env")
 TOKEN = os.getenv("DISCORD_TOKEN")
 PREFIX = os.getenv("BOT_PREFIX")
 #print(TOKEN)
