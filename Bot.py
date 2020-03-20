@@ -5,7 +5,7 @@ import discord
 from dotenv import load_dotenv
 from discord.ext import commands
 
-load_dotenv(dotenv_path="./env")
+load_dotenv(dotenv_path="../.env")
 TOKEN = os.getenv("DISCORD_TOKEN")
 PREFIX = os.getenv("BOT_PREFIX")
 #print(TOKEN)
@@ -15,6 +15,7 @@ BadWords = ["penis", "dick", "d1ck", "pik", "pikhoved", "pnis", "fuck", "fucking
 "nignog", "nignag", "fandme", "dumbass", "luder", "ludder", "gay","gai", "bøsse", "bitch", "bich", "svin", "kælling", "helvede"]
 
 Marking = []
+MarkingChannel = 688030493467476038
 
 client = discord.Client()
 bot = commands.Bot(command_prefix=PREFIX)
@@ -30,7 +31,7 @@ async def mark(ctx):
         await ctx.channel.send("Du er allerede i køen!", delete_after=2)
     else:
         Marking.append(ctx.author.display_name)
-        print(ctx.author.display_name + " has been added\n")
+        print(ctx.author.display_name + " has been added")
     
 
 @bot.command(
@@ -39,14 +40,33 @@ async def mark(ctx):
 )
 @commands.has_role("Lærer")
 async def showline(ctx):
-    channel = bot.get_channel(688030493467476038)
+    if MarkingChannel == "undefined":
+        ctx.send("Markingchannel ikke defineret. Brug !markingchannel <tekst-kanal id> for at definere kanal")
+        return
+    try:
+        channel = bot.get_channel(MarkingChannel)
+    except:
+        ctx.send("Kunne ikke finde kanalen. Brug !markingchannel <tekst-kanal id> for at definere kanal")
+        return
+    msg = await channel.history(limit = 2).flatten()
     if len(Marking) > 0:
-        line = ""
-        for us in Marking:
-            line += us + "\n"
-        await channel.send("Køen er: \n" + line + "\n")
+        if "Køen er: \n" in msg[0].content:
+            await msg[0].edit(content = generateline())
+        elif "Køen er tom" in msg[0].content:
+            await msg[0].edit(content = generateline())
+        else:
+            await channel.send(generateline())
+    elif "Køen er: \n" in msg[0].content or "Køen er tom" in msg[0].content:
+        await msg[0].edit(content = "Køen er tom")
     else:
         await channel.send("Køen er tom")
+
+
+def generateline():
+    line = "Køen er: \n"
+    for us in Marking:
+            line += us + "\n"
+    return line
 
 
 @bot.command(
@@ -62,28 +82,12 @@ async def unmark(ctx):
 
 
 @bot.command(
-    name = "fartmode",
-    help = "Fartmode activated"
+    name = "markingchannel",
+    help = "Bestemmer hvilken tekstkanal som botten skal skrive køen i"
 )
-async def fartmode(ctx):
-    await ctx.channel.send("Bot is now in fartmode!")
-    with open('img/fartmode.png', 'rb') as f:
-        picture = discord.File(f)
-    await ctx.channel.send(file=picture)
-
-    await ctx.guild.me.edit(nick="Fartmode")
-    print(type(ctx.guild.me.roles))
-    currolle = ctx.guild.me.roles[ctx.guild.me.roles.index("Test Admin")]
-    print(currolle)
-    print(ctx.guild.me.roles)
-
-
-@bot.command(
-    name = "resetNick",
-    help = "Nulstil kælenavnet"
-)
-async def resetNick(ctx):
-    await ctx.guild.me.edit(nick="Test bot")
+async def markingchannel(ctx, channel: int):
+    global MarkingChannel
+    MarkingChannel = channel
 
 
 @bot.command(
