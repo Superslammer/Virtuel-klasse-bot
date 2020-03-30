@@ -8,38 +8,56 @@ from discord.ext import commands
 load_dotenv(dotenv_path="../.env")
 TOKEN = os.getenv("DISCORD_TOKEN")
 PREFIX = os.getenv("BOT_PREFIX")
-#print(TOKEN)
-#print(PREFIX)
 
 BadWords = ["penis", "dick", "d1ck", "pik", "pikhoved", "pnis", "fuck", "fucking", "fucker", "nigger", "nigga", "niggar", "negger", "negga", "neggar", "negrow", "negro",
 "nignog", "nignag", "fandme", "dumbass", "luder", "ludder", "gay","gai", "bøsse", "bitch", "bich", "svin", "kælling", "helvede"]
 
 Marking = []
-MarkingChannel = 688030493467476038
+MarkingChannel = 694256170445045801 #693475965636182047
+MaintenanceChannel = 687664303247196240 #643419670996844558
 
 client = discord.Client()
 bot = commands.Bot(command_prefix=PREFIX)
-
+    
 
 @bot.command(
     name = "mark",
     help = "Viser at du gerne vil sige noget"
 )
 async def mark(ctx):
-    if ctx.author.display_name in Marking:
-        print("Already in array")
-        await ctx.channel.send("Du er allerede i køen!", delete_after=2)
-    else:
-        Marking.append(ctx.author.display_name)
-        print(ctx.author.display_name + " has been added")
-    
+    #await ctx.message.delete()
+    await marking(ctx, True)
+
 
 @bot.command(
-    name = "showline",
-    help = "This show the line of people in Marking"
+    name = "unmark",
+    help = "Afmarkere dig fra listen"
 )
-@commands.has_role("Lærer")
-async def showline(ctx):
+async def unmark(ctx):
+    #await ctx.message.delete()
+    await marking(ctx, False)
+
+
+async def marking(ctx, mark: bool):
+    if mark:
+        if ctx.author.display_name in Marking:
+            print("Already in array")
+            await ctx.message.delete()
+            await ctx.channel.send("Du er allerede i køen!", delete_after=2)
+        else:   
+            Marking.append(ctx.author.display_name)
+            print(ctx.author.display_name + " has been added")
+    else:
+        removed = False
+        for us in Marking:
+            if us == ctx.author.display_name:
+                Marking.remove(us)
+                print(ctx.author.display_name + " has been removed")
+                removed = True
+                break
+        if not removed:
+            await ctx.channel.send("Du er allerede i køen!", delete_after=2)
+    
     if MarkingChannel == "undefined":
         ctx.send("Markingchannel ikke defineret. Brug !markingchannel <tekst-kanal id> for at definere kanal")
         return
@@ -50,35 +68,23 @@ async def showline(ctx):
         return
     msg = await channel.history(limit = 2).flatten()
     if len(Marking) > 0:
-        if "Køen er: \n" in msg[0].content:
+        if "Køen er[" in msg[0].content:
             await msg[0].edit(content = generateline())
         elif "Køen er tom" in msg[0].content:
             await msg[0].edit(content = generateline())
         else:
             await channel.send(generateline())
-    elif "Køen er: \n" in msg[0].content or "Køen er tom" in msg[0].content:
+    elif "Køen er[" in msg[0].content or "Køen er tom" in msg[0].content:
         await msg[0].edit(content = "Køen er tom")
     else:
         await channel.send("Køen er tom")
 
 
 def generateline():
-    line = "Køen er: \n"
+    line = f"Køen er[{len(Marking)}]: \n"
     for us in Marking:
             line += us + "\n"
     return line
-
-
-@bot.command(
-   name = "unmark",
-   help = "Afmarkere dig fra listen"
-)
-async def unmark(ctx):
-    for us in Marking:
-        if us == ctx.author.display_name:
-            Marking.remove(us)
-            print(ctx.author.display_name + " has been removed\n")
-            break
 
 
 @bot.command(
@@ -94,8 +100,10 @@ async def markingchannel(ctx, channel: int):
     name = "kill"
 )
 async def kill(ctx):
-    if ctx.author.id == 412726759809613836 or ctx.author.id == 199571070246715393 or ctx.author.id == 213676559259795456:
-        await ctx.send("Stopping bot...")
+    channel = bot.get_channel(MaintenanceChannel)
+    if ctx.author.id == 412726759809613836 or ctx.author.id == 199571070246715393 : # or ctx.author.id == 213676559259795456:
+        print("Shutting down bot...")
+        await channel.send("Stopping bot...")
         await bot.logout()
     else:
         await ctx.send(ctx.author.mention + ", men dont try turn me off you mother you")
@@ -109,7 +117,6 @@ async def on_message(message):
             await message.delete()
             await message.channel.send("No swearing!", delete_after=2)
             break
-
     await bot.process_commands(message)
 
 
