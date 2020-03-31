@@ -18,7 +18,7 @@ MaintenanceChannel = 687664303247196240 #643419670996844558
 
 client = discord.Client()
 bot = commands.Bot(command_prefix=PREFIX)
-    
+
 
 @bot.command(
     name = "mark",
@@ -80,6 +80,23 @@ async def marking(ctx, mark: bool):
         await channel.send("Køen er tom")
 
 
+@bot.command(
+    name = "resetmark",
+    help = "Nulstiller håndsoprækningskøen"
+)
+async def resetmark(ctx):
+    channel = bot.get_channel(MarkingChannel)
+    roles = []
+    for role in ctx.author.roles:
+        roles.append(role.name)
+    
+    if "Lærer" in roles or "Moderator" in roles:
+        Marking.clear()
+        msg = await channel.history(limit = 2).flatten()
+        await msg[0].edit(content = "Køen er tom")
+        print("Array cleared")
+
+
 def generateline():
     line = f"Køen er[{len(Marking)}]: \n"
     for us in Marking:
@@ -91,6 +108,7 @@ def generateline():
     name = "markingchannel",
     help = "Bestemmer hvilken tekstkanal som botten skal skrive køen i"
 )
+@commands.has_role("Moderator")
 async def markingchannel(ctx, channel: int):
     global MarkingChannel
     MarkingChannel = channel
@@ -101,12 +119,14 @@ async def markingchannel(ctx, channel: int):
 )
 async def kill(ctx):
     channel = bot.get_channel(MaintenanceChannel)
+    msg = await bot.get_channel(MarkingChannel).history(limit = 2).flatten()
     if ctx.author.id == 412726759809613836 or ctx.author.id == 199571070246715393 : # or ctx.author.id == 213676559259795456:
         print("Shutting down bot...")
         await channel.send("Stopping bot...")
+        await msg[0].edit(content = "Køen er tom")
         await bot.logout()
     else:
-        await ctx.send(ctx.author.mention + ", men dont try turn me off you mother you")
+        await ctx.send(ctx.author.mention + ", men dont try turn me off you mother you", delete_after=2)
 
 
 @bot.event
@@ -122,9 +142,13 @@ async def on_message(message):
 
 @bot.event
 async def on_ready():
+    print()
+    print("--------------------------------------------------")
     print(f'{bot.user.name} has connected to Discord!')
     print(f'They are connetced to the following guild(s):')
     for guild in bot.guilds:
         print(f'{guild.name} (id:{guild.id})')
+    print("--------------------------------------------------")
+
 
 bot.run(TOKEN)
