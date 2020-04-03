@@ -12,8 +12,18 @@ PREFIX = os.getenv("BOT_PREFIX")
 MUTETIME = 1000
 
 BadWords = ["penis", "dick", "d1ck", "pik", "pikhoved", "pnis", "fuck", "fucking", "fucker", "nigger", "nigga", "niggar", "negger", "negga", "neggar", "negrow", "negro",
-"nignog", "nignag", "fandme", "dumbass", "luder", "ludder", "gay","gai", "bøsse", "bitch", "bich", "svin", "kælling", "helvede"]
+"nignog", "fandme", "dumbass", "luder", "ludder", "gay","gai", "bøsse", "bitch", "bich", "svin", "kælling", "helvede"]
 
+students = ["Tobias H", "Simon", "Trine", "Niklas B", "Tobias B", 
+            "William", "Jonas H", "Camilla","Emmali", "Niklas J", 
+            "Peter", "Jeppe P", "Magnus G", "Benjamin", "Lasse L", 
+            "Martin", "Magnus S", "Jonas A", "Andreas", "Steffen", 
+            "Esben", "Jeppe D", "Anton", "Malte", "Thomas", "Nikolai",
+            "Johan", "Oliver", "Lasse B", "Kristen", "0x62727568", "Fawfs"]
+
+newlist = []
+users_collected = []
+namecheck = []
 Marking = []
 Warned = {}
 MarkingChannel = 693475965636182047 #694256170445045801
@@ -39,6 +49,7 @@ async def mark(ctx):
 async def unmark(ctx):
     #await ctx.message.delete()
     await marking(ctx, False)
+
 
 #TODO:
 #- spam protect
@@ -149,40 +160,49 @@ async def markingchannel(ctx, channel: int):
 
 
 @bot.command(
-    name = "ishere",
-    help = "Laver en liste af hvem der er online"
+    name = "isonline"
 )
-async def ishere(ctx):
-    global users_collected
-    max_amount = 2
-    user = ctx.author.display_name
-    teacher = "Test Admin"
-    
+async def isOnline(ctx):
+    name = ctx.author.display_name
+    global namecheck
+
+
     rolescheck = []
     for role in ctx.author.roles:
-        rolescheck.append(role.name)
+       rolescheck.append(role.name)
 
-    if user not in users_collected:
-        users_collected.append(user)
-    else:
-        await ctx.message.delete()
-        await ctx.channel.send("Du er allerede på listen", delete_after=2)
-        
+    if "Test Admin" not in rolescheck:
+        if name in students and name not in namecheck:
+            namecheck.append(name)
+        else:
+            await ctx.message.delete()
+            await ctx.channel.send("Du er allerede på listen", delete_after=2)
+    else: 
+        f = open("Online.txt", "r+")
+        for i in namecheck:
+            f.write("Navn: " + i + "\n")
+            f.write("Online: " + "Yes\n\n")
 
-    if "Test Admin" in rolescheck:
-        f = open("Fraværs_check.txt", "w")
-        for user in users_collected:
-            f.write(str(user) + "\n")
+        global newlist
+        lists = Diff(students, namecheck)
+
+        for name in lists:
+            newlist.append(name)
+
+        for i in newlist:
+            f.write("Navn: " + i + "\n")
+            f.write("Online: " + "No\n\n")
         f.close()
 
-        await ctx.author.send(file=discord.File('Fraværs_check.txt'))
-        print("Absent list has been sent to teacher")
 
-        f = open("Fraværs_check.txt", "w")
-        f.write("")
-        f.close()
-        users_collected.clear()
+        await ctx.channel.send(file=discord.File('Online.txt'))
+        namecheck.clear()
 
+def Diff(students, namecheck): 
+    return (list(set(students) - set(namecheck))) 
+    
+    
+    
 
 
 @bot.command(
@@ -194,7 +214,7 @@ async def kill(ctx):
     if ctx.author.id == 412726759809613836 or ctx.author.id == 199571070246715393 : # or ctx.author.id == 213676559259795456:
         print("Shutting down bot...")
         await channel.send("Stopping bot...")
-        await msg[0].edit(content = "Køen er tom")
+        #await msg[0].edit(content = "Køen er tom")
         await bot.logout()
     else:
         await ctx.send(ctx.author.mention + ", men dont try turn me off you mother you", delete_after=2)
