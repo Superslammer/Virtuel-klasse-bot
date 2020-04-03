@@ -108,9 +108,14 @@ def mute():
     print("Unmute")
 
 
+def mute():
+    time.sleep(5)
+    print("Unmute")
+
+
 @bot.command(
     name = "resetmark",
-    help = "Nulstiller håndsoprækningskøen"
+    help = "Nulstiller håndsoprækningsk øen"
 )
 async def resetmark(ctx):
     channel = bot.get_channel(MarkingChannel)
@@ -140,6 +145,44 @@ def generateline():
 async def markingchannel(ctx, channel: int):
     global MarkingChannel
     MarkingChannel = channel
+
+
+
+@bot.command(
+    name = "ishere",
+    help = "Laver en liste af hvem der er online"
+)
+async def ishere(ctx):
+    global users_collected
+    max_amount = 2
+    user = ctx.author.display_name
+    teacher = "Test Admin"
+    
+    rolescheck = []
+    for role in ctx.author.roles:
+        rolescheck.append(role.name)
+
+    if user not in users_collected:
+        users_collected.append(user)
+    else:
+        await ctx.message.delete()
+        await ctx.channel.send("Du er allerede på listen", delete_after=2)
+        
+
+    if "Test Admin" in rolescheck:
+        f = open("Fraværs_check.txt", "w")
+        for user in users_collected:
+            f.write(str(user) + "\n")
+        f.close()
+
+        await ctx.author.send(file=discord.File('Fraværs_check.txt'))
+        print("Absent list has been sent to teacher")
+
+        f = open("Fraværs_check.txt", "w")
+        f.write("")
+        f.close()
+        users_collected.clear()
+
 
 
 @bot.command(
