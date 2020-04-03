@@ -12,14 +12,9 @@ PREFIX = os.getenv("BOT_PREFIX")
 MUTETIME = 1000
 
 BadWords = ["penis", "dick", "d1ck", "pik", "pikhoved", "pnis", "fuck", "fucking", "fucker", "nigger", "nigga", "niggar", "negger", "negga", "neggar", "negrow", "negro",
-"nignog", "fandme", "dumbass", "luder", "ludder", "gay","gai", "bøsse", "bitch", "bich", "svin", "kælling", "helvede"]
+"nignog", "fandme", "dumbass", "luder", "ludder", "gay", "bøsse", "bitch", "bich", "svin", "kælling", "helvede"]
 
-students = ["Tobias H", "Simon", "Trine", "Niklas B", "Tobias B", 
-            "William", "Jonas H", "Camilla","Emmali", "Niklas J", 
-            "Peter", "Jeppe P", "Magnus G", "Benjamin", "Lasse L", 
-            "Martin", "Magnus S", "Jonas A", "Andreas", "Steffen", 
-            "Esben", "Jeppe D", "Anton", "Malte", "Thomas", "Nikolai",
-            "Johan", "Oliver", "Lasse B", "Kristen"]
+
 
 newlist = []
 users_collected = []
