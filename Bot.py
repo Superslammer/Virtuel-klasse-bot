@@ -2,19 +2,22 @@ import os
 import sys
 import time
 import discord
+from threading import Thread
 from dotenv import load_dotenv
 from discord.ext import commands
 
 load_dotenv(dotenv_path="../.env")
 TOKEN = os.getenv("DISCORD_TOKEN")
 PREFIX = os.getenv("BOT_PREFIX")
+MUTETIME = 1000
 
 BadWords = ["penis", "dick", "d1ck", "pik", "pikhoved", "pnis", "fuck", "fucking", "fucker", "nigger", "nigga", "niggar", "negger", "negga", "neggar", "negrow", "negro",
 "nignog", "nignag", "fandme", "dumbass", "luder", "ludder", "gay","gai", "bøsse", "bitch", "bich", "svin", "kælling", "helvede"]
 
 Marking = []
-MarkingChannel = 694256170445045801 #693475965636182047
-MaintenanceChannel = 687664303247196240 #643419670996844558
+Warned = {}
+MarkingChannel = 693475965636182047 #694256170445045801
+MaintenanceChannel = 643419670996844558 #687664303247196240
 
 client = discord.Client()
 bot = commands.Bot(command_prefix=PREFIX)
@@ -37,14 +40,27 @@ async def unmark(ctx):
     #await ctx.message.delete()
     await marking(ctx, False)
 
-
+#TODO:
+#- spam protect
+#- fix the dict, and manipulate it in the rigth way
 async def marking(ctx, mark: bool):
+    global Warned
+    MuteTr = Thread(target = mute)
     if mark:
         if ctx.author.display_name in Marking:
             print("Already in array")
-            await ctx.message.delete()
-            await ctx.channel.send("Du er allerede i køen!", delete_after=2)
-        else:   
+            if Warned.get(ctx.author) == None:
+                await ctx.message.delete()
+                await ctx.channel.send("Du er allerede i køen!", delete_after=2)
+                Warned[ctx.author] = 0
+            elif Warned[ctx.author] == 3:
+                MuteTr.start()
+            else:
+                for user in Warned:
+                    if user.display_name == ctx.author.display_name:
+                        user += 1
+
+        else:
             Marking.append(ctx.author.display_name)
             print(ctx.author.display_name + " has been added")
     else:
@@ -57,7 +73,7 @@ async def marking(ctx, mark: bool):
                 break
         if not removed:
             await ctx.channel.send("Du er allerede i køen!", delete_after=2)
-    
+            
     if MarkingChannel == "undefined":
         ctx.send("Markingchannel ikke defineret. Brug !markingchannel <tekst-kanal id> for at definere kanal")
         return
@@ -78,6 +94,18 @@ async def marking(ctx, mark: bool):
         await msg[0].edit(content = "Køen er tom")
     else:
         await channel.send("Køen er tom")
+
+
+@bot.command(
+    name = "printMute"
+)
+async def printMute(ctx):
+    print(Warned)
+
+
+def mute():
+    time.sleep(5)
+    print("Unmute")
 
 
 @bot.command(
