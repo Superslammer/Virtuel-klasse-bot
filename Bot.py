@@ -19,7 +19,7 @@ students = ["Tobias H", "Simon", "Trine", "Niklas B", "Tobias B",
             "Peter", "Jeppe P", "Magnus G", "Benjamin", "Lasse L", 
             "Martin", "Magnus S", "Jonas A", "Andreas", "Steffen", 
             "Esben", "Jeppe D", "Anton", "Malte", "Thomas", "Nikolai",
-            "Johan", "Oliver", "Lasse B", "Kristen", "0x62727568", "Fawfs"]
+            "Johan", "Oliver", "Lasse B", "Kristen"]
 
 newlist = []
 users_collected = []
