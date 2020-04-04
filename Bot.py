@@ -1,7 +1,9 @@
 import os
 import sys
 import time
+import json
 import discord
+from datetime import datetime
 from threading import Thread
 from dotenv import load_dotenv
 from discord.ext import commands
@@ -11,10 +13,29 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 PREFIX = os.getenv("BOT_PREFIX")
 MUTETIME = 1000
 
+# For testing
+
+#f = open("../creds.txt")
+#data = f.readlines()
+#TOKEN = data[0]
+#PREFIX = data[1]
+#f.close()
+
+
 BadWords = ["penis", "dick", "d1ck", "pik", "pikhoved", "pnis", "fuck", "fucking", "fucker", "nigger", "nigga", "niggar", "negger", "negga", "neggar", "negrow", "negro",
-"nignog", "fandme", "dumbass", "luder", "ludder", "gay", "bøsse", "bitch", "bich", "svin", "kælling", "helvede"]
+"nignog", "nignag", "fandme", "dumbass", "luder", "ludder", "gay","gai", "bøsse", "bitch", "bich", "svin", "kælling", "helvede"]
 
+students = []
+j = open("../Students.txt", "r")
+for student in j:
+    students.append(student.rstrip())
+j.close()
 
+now = datetime.now()
+current_time = now.strftime("%H:%M:%S")
+
+today = datetime.today()
+current_today = today.strftime("%D")
 
 newlist = []
 users_collected = []
@@ -44,7 +65,6 @@ async def mark(ctx):
 async def unmark(ctx):
     #await ctx.message.delete()
     await marking(ctx, False)
-
 
 #TODO:
 #- spam protect
@@ -114,14 +134,9 @@ def mute():
     print("Unmute")
 
 
-def mute():
-    time.sleep(5)
-    print("Unmute")
-
-
 @bot.command(
     name = "resetmark",
-    help = "Nulstiller håndsoprækningsk øen"
+    help = "Nulstiller håndsoprækningskøen"
 )
 async def resetmark(ctx):
     channel = bot.get_channel(MarkingChannel)
@@ -153,51 +168,61 @@ async def markingchannel(ctx, channel: int):
     MarkingChannel = channel
 
 
-
 @bot.command(
     name = "isonline"
 )
 async def isOnline(ctx):
-    name = ctx.author.display_name
-    global namecheck
 
+    try:
+        name = ctx.author.display_name
+        global namecheck
 
-    rolescheck = []
-    for role in ctx.author.roles:
-       rolescheck.append(role.name)
+        rolescheck = []
+        for role in ctx.author.roles:
+            rolescheck.append(role.name)
 
-    if "Test Admin" not in rolescheck:
-        if name in students and name not in namecheck:
-            namecheck.append(name)
-        else:
-            await ctx.message.delete()
-            await ctx.channel.send("Du er allerede på listen", delete_after=2)
-    else: 
-        f = open("Online.txt", "r+")
-        for i in namecheck:
-            f.write("Navn: " + i + "\n")
-            f.write("Online: " + "Yes\n\n")
+        if "god" not in rolescheck:
+            if name in students and name not in namecheck:
+                namecheck.append(name)
+            else:
+                await ctx.message.delete()
+                await ctx.channel.send("Du er allerede på listen, eller så er du ikke en del af klassen.", delete_after=2)
+        else: 
+            f = open("Online.txt", "r+")
+            for i in namecheck:
+                f.write("Navn: " + i + "\n")
+                f.write("Meldte sig online kl " + current_time + "\n")
+                f.write("Dato: " + current_today + "\n\n")
 
-        global newlist
-        lists = Diff(students, namecheck)
+            global newlist
+            lists = Diff(students, namecheck)
 
-        for name in lists:
-            newlist.append(name)
+            for name in lists:
+                newlist.append(name)
 
-        for i in newlist:
-            f.write("Navn: " + i + "\n")
-            f.write("Online: " + "No\n\n")
-        f.close()
+            for i in newlist:
+                f.write("Navn: " + i + "\n")
+                f.write("Meldte sig ikke online kl " + current_time + "\n")
+                f.write("Dato: " + current_today + "\n\n")
+            f.close()
 
-
-        await ctx.channel.send(file=discord.File('Online.txt'))
-        namecheck.clear()
+            await ctx.channel.send(file=discord.File('Online.txt'))
+            namecheck.clear()
+    except:
+        await ctx.channel.send("Der er sket en fejl")
 
 def Diff(students, namecheck): 
     return (list(set(students) - set(namecheck))) 
-    
-    
-    
+
+
+
+@bot.command(
+    name = "clear"
+)
+@commands.has_role("Test Admin")
+async def clear(ctx, amount=15):
+    await ctx.channel.purge(limit=amount)
+
 
 
 @bot.command(
@@ -209,7 +234,7 @@ async def kill(ctx):
     if ctx.author.id == 412726759809613836 or ctx.author.id == 199571070246715393 : # or ctx.author.id == 213676559259795456:
         print("Shutting down bot...")
         await channel.send("Stopping bot...")
-        #await msg[0].edit(content = "Køen er tom")
+        await msg[0].edit(content = "Køen er tom")
         await bot.logout()
     else:
         await ctx.send(ctx.author.mention + ", men dont try turn me off you mother you", delete_after=2)
